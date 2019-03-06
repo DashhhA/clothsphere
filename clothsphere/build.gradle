@@ -1,0 +1,39 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        //Добавляем osdetector, для определения платформы сборки Javafx
+        classpath 'com.google.gradle:osdetector-gradle-plugin:1.6.0'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'java-library-distribution'
+apply plugin: 'application'
+apply plugin: 'com.google.osdetector'
+
+//Версия приложения
+version '1.0'
+
+//Версия JAVA
+sourceCompatibility = 1.8
+
+//Получаем переменную platform
+def platform = osdetector.os == 'osx' ? 'mac' : osdetector.os == 'windows' ? 'win' : osdetector.os
+
+repositories {
+    //Репозиторий jcenter - для загрузки зависимостей
+    jcenter()
+}
+
+//Зависимости приложения
+dependencies {
+
+    //javafx библиотеки
+    implementation "org.openjfx:javafx-base:8:$platform"
+    implementation "org.openjfx:javafx-graphics:8:$platform"
+    implementation "org.openjfx:javafx-controls:8:$platform"
+
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+}

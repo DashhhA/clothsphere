@@ -1,0 +1,40 @@
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Spinner?>
+<BorderPane fx:id="root" fx:controller="ru.clothsphere.controllers.SettingsController"
+            xmlns:fx="http://javafx.com/fxml">
+    <top>
+        <Label>Настройки</Label>
+        <VBox style="-fx-spacing: 10px; -fx-padding: 10px">
+
+            <HBox style=" -fx-spacing: 5px">
+                <Label style="-fx-pref-width: 120px;">Sphere radius</Label>
+                <Spinner editable="true" fx:id="spSphereRadius" initialValue="145" max="280" min="30"/>
+            </HBox>
+
+            <HBox style=" -fx-spacing: 5px">
+                <Label style="-fx-pref-width: 120px;">Cloth width</Label>
+                <Spinner editable="true" fx:id="spClothWidth" initialValue="800" max="1600" min="100"/>
+            </HBox>
+
+            <HBox style=" -fx-spacing: 5px">
+                <Label style="-fx-pref-width: 120px;">Cloth height</Label>
+                <Spinner editable="true" fx:id="spClothHeight" initialValue="800" max="1600" min="100"/>
+            </HBox>
+
+            <HBox style=" -fx-spacing: 5px">
+                <Label style="-fx-pref-width: 120px;">Divisions X</Label>
+                <Spinner editable="true" fx:id="spDivX" initialValue="30" max="100" min="5"/>
+            </HBox>
+
+            <HBox style=" -fx-spacing: 5px">
+                <Label style="-fx-pref-width: 120px;">Divisions Y</Label>
+                <Spinner editable="true" fx:id="spDivY" initialValue="30" max="100" min="5"/>
+            </HBox>
+
+        </VBox>
+
+    </top>
+</BorderPane>

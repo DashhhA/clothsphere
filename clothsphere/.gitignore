@@ -1,0 +1,10 @@
+.settings
+.classpath
+.project
+.buildpath
+.gradle
+.idea
+project.properties
+.DS_Store
+gradle/**
+out/**

@@ -1,0 +1,9 @@
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane fx:id="root"
+            xmlns:fx="http://javafx.com/fxml">
+    <top>
+        <Label>Информация о разработчике</Label>
+    </top>
+</BorderPane>

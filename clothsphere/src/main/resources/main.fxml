@@ -1,0 +1,22 @@
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+
+<BorderPane fx:id="root" fx:controller="ru.clothsphere.controllers.Controller"
+            xmlns:fx="http://javafx.com/fxml">
+    <top>
+        <HBox style="-fx-padding: 10px; -fx-spacing: 10px">
+            <Button fx:id="btnInfo" onAction="#btnInfoClick">Information</Button>
+            <Button fx:id="btnSettings" onAction="#btnSettingsClick">Settings</Button>
+
+        </HBox>
+    </top>
+    <bottom>
+        <VBox style="-fx-padding: 10px; -fx-spacing: 10px">
+            <Button fx:id="btnStart" onAction="#btnStartClick">Start</Button>
+            <Button fx:id="btnPause" onAction="#btnPauseClick">Pause</Button>
+            <Button fx:id="btnRestart" onAction="#btnRestartClick">Restart</Button>
+        </VBox>
+    </bottom>
+</BorderPane>
