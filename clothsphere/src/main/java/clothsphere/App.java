@@ -228,8 +228,8 @@
 
 package  clothsphere;
 
+import clothsphere.helpers.CameraTransform;
 import javafx.application.Application;
-import javafx.scene.Camera;
 import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
@@ -239,13 +239,17 @@ import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
 import javafx.scene.shape.Sphere;
 import javafx.stage.Stage;
+import clothsphere.helpers.CameraTransform;
 
 public class App extends Application{
+
+    private  PerspectiveCamera camera;
 
     public Sphere sphere;
     public int sphereRadius;
     public int sphereDivisions;
-    public Camera  camera = new PerspectiveCamera();
+
+    private final CameraTransform cameraTransform = new CameraTransform();
 
     public  static  final  int WIDTH = 1000;
     public static  final  int HEIGHT = 600;
@@ -259,15 +263,32 @@ public class App extends Application{
         sphereDivisions = 50;
     }
 
+    public  void createCamera(){
+        camera = new PerspectiveCamera(true);
+        cameraTransform.setTranslate(0,0,0);
+        cameraTransform.getChildren().addAll(camera);
+        camera.setNearClip(0.1);
+        camera.setFarClip(1000000.0);
+        camera.setFieldOfView(42);
+        camera.setVerticalFieldOfView(true);
+
+        cameraTransform.rx.setAngle(250);
+        camera.setTranslateZ(-1500);
+    }
+
     @Override
     public  void start(Stage primartStage){
 
         setSceneDefaults();
 
+        createCamera();
+
         sphere = new Sphere(sphereRadius, sphereDivisions);
         Group root = new Group(sphere);
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
+
+        scene.setCamera(camera);
 
         scene.setCamera(camera);
 
