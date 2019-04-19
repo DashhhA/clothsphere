@@ -78,13 +78,13 @@ public class App extends Application {
      * Устанавливаем значения по умолчанию
      */
     public void setSceneDefaults() {
-        sphereRadius = 345;
+        sphereRadius = 145;
         sphereDivisions = 50;
 
         clothWidth = 800;
         clothHeight = 800;
-        clothDivX = 30;
-        clothDivY = 30;
+        clothDivX = 20;
+        clothDivY = 20;
     }
 
     /**
