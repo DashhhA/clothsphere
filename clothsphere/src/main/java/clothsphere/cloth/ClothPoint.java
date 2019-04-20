@@ -4,29 +4,56 @@ import clothsphere.helpers.Vector4;
 
 import java.util.HashMap;
 
+
+/**
+ * Точка ткани
+ */
 public class ClothPoint {
+
+    /**
+     * Ткань которой пренадлежит точка
+     */
     private final Cloth parent;
-    public double mass = 0,
-            initMass = 0;
 
-    public Vector4 position,
-                oldPosition,
-                initPosition,
-                force;
+    public double mass = 0,  //масса точки
+            initMass = 0;  //начальная масса точки
 
-    private final HashMap<ClothPoint, Constraint> constrains = new HashMap<>();
+    public Vector4
+            position,     //положение точки
+            oldPosition,  //старое положение точки
+            initPosition, //начальное положение точки
+            force;        //вектор силы
 
-    public ClothPoint(Cloth parent, double mass, double x, double y, double z){
-        this.position = new Vector4((float)x, (float) y, (float) z);
-        this.oldPosition = new Vector4((float)x, (float) y, (float) z);
+    /**
+     * Ассоциативный массив, точка ткани и связи с ней
+     */
+    private final HashMap<ClothPoint, Constraint> constraints = new HashMap<>();
+
+
+    /**
+     * Конструктор точки
+     * @param parent ткань
+     * @param mass масса точки
+     * @param x коодинаты x
+     * @param y коодинаты y
+     * @param z коодинаты z
+     */
+    public ClothPoint(Cloth parent, double mass, double x, double y, double z) {
+
+        this.position = new Vector4((float) x, (float) y, (float) z);
+        this.oldPosition = new Vector4((float) x, (float) y, (float) z);
         this.force = new Vector4(0, 0, 0);
-        this.initPosition = new Vector4((float)x, (float) y, (float) z);
+        this.initPosition = new Vector4((float) x, (float) y, (float) z);
         this.initMass = mass;
+
         this.parent = parent;
         this.mass = mass;
     }
 
-    public  final void reset(){
+    /**
+     * Сброс точки в начальное положение и массу
+     */
+    public final void reset() {
         this.oldPosition.x = this.initPosition.x;
         this.oldPosition.y = this.initPosition.y;
         this.oldPosition.z = this.initPosition.z;
@@ -38,36 +65,123 @@ public class ClothPoint {
         this.position.z = this.initPosition.z;
     }
 
-    public void setPosition(Vector4 pos){
+    /**
+     * Установить текущую позицию
+     * @param pos координаты точки
+     */
+    public void setPosition(Vector4 pos) {
         position.x = pos.x;
         position.y = pos.y;
         position.z = pos.z;
     }
 
-    public void setOldPosition(Vector4 oldPosition){
+    /**
+     * Установить старую позицию
+     * @param oldPosition координаты точки
+     */
+    public void setOldPosition(Vector4 oldPosition) {
         this.oldPosition.x = oldPosition.x;
         this.oldPosition.y = oldPosition.y;
         this.oldPosition.z = oldPosition.z;
     }
 
-    //https://www.programcreek.com/java-api-examples/?code=FXyz/FXyzLib/FXyzLib-master/src/org/fxyz/shapes/complex/cloth/WeightedPoint.java
+    /**
+     * Установить вектор силы
+     * @param p
+     */
+    private void setForce(Vector4 p) {
+        this.force = p;
+    }
+
+    /**
+     * Очистить силу
+     */
+    public void clearForces() {
+        setForce(new Vector4(0, 0, 0));
+    }
+
+    /**
+     * Присоединить к
+     * @param other другая точка
+     * @param linkDistance растояние
+     * @param stiffness жесткость
+     */
     public final void attatchTo(ClothPoint other, double linkDistance, double stiffness) {
         attatchTo(this, other, linkDistance, stiffness);
     }
 
     public final void attatchTo(ClothPoint self, ClothPoint other, double linkDistance, double stiffness) {
         Link pl = new Link(self, other, linkDistance, stiffness);
-        this.constrains.put(other, (Constraint) pl);
+        this.constraints.put(other, (Constraint) pl);
     }
 
-    public void solveConstraints(){
-        constrains.values().parallelStream().forEach(Constraint::solve);
+    /**
+     * Применяем вектор силы
+     * @param force
+     */
+
+    public void applyForce(Vector4 force) {
+        this.force.x += force.x;
+        this.force.y += force.y;
+        this.force.z += force.z;
+    }
+    /**
+     * Решеаем связи в паралельной потоковой обработке
+     */
+    public void solveConstraints() {
+        constraints.values().parallelStream().forEach(Constraint::solve);
     }
 
-    public  void updatePhysics(double dt, double t){
-        synchronized (this){
+    /**
+     * Реализация физики падения ткани
+     */
+    public void updatePhysics(double dt, double t) {
 
+        //Выбполням синхронно с другими потоками
+        synchronized (this) {
+
+            //Высчитваем разнизу межу позициями, старой и текущей
+            Vector4 vel = new Vector4(
+                    (position.x - oldPosition.x),
+                    (position.y - oldPosition.y),
+                    (position.z - oldPosition.z)
+            );
+
+            //Квадрат времени
+            float dtSq = (float) (dt * dt);
+
+            //Гравитация
+            double GRAVITY = -0.98;
+
+            //Направляем гравитацию по оси Z
+            applyForce(new Vector4(0,0, (float) GRAVITY));
+
+            //Вектор ускорения
+            Vector4 acceleration = new Vector4(0,0,0);
+
+            //Если масса точки больше 0, делим вектор силы на массу.
+            if(mass > 0) {
+                acceleration = force.divide((float) mass);
+            }
+
+            //Вычесляем следующую позицию используя алгоритм Verlet Integration
+            Vector4 next = position.add(vel.multiply((float)dt)).add(acceleration.multiply((float) (dtSq)));
+
+            //Проверяем коснулась ли ткань пола
+            if(next.z<-500.5f) {
+                //Если да фиксируем ось Z
+                next.z = -500.5f;
+            }
+
+            //если почти уже пол, убираем силу с некотрых точек, чтобы оставить ткань лежать не идеально ровно
+            if(next.z < -450f) clearForces();
+
+            //смещаем вектора позиции
+            setOldPosition(position);
+            setPosition(next);
         }
     }
 
 }
+
+

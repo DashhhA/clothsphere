@@ -86,7 +86,7 @@ public class ClothTimer extends ScheduledService<Void> {
     }
 
     /**
-     * Установка таймепа на паузу
+     * Установка таймера на паузу
      */
     protected void pause() {
         paused = true;
@@ -116,7 +116,13 @@ public class ClothTimer extends ScheduledService<Void> {
                 //в паралельно потоке для каждой точке вызываем расчет физики на дельту времени
                 parent.points.parallelStream().forEach(p -> {
 
-                    p.updatePhysics((float)getDeltaTime(), 1);
+                    //Для более правильного расчета посылаем реальную дельту времени
+                    //Но иногда могут происходить резкие скачки при загрузке процессора. Поэтому дельту можно сделать фиксированной
+                    //Увеличивая ее будет увеличиваться скорость симуляции и рост силы
+
+                    //float dt = (float)getDeltaTime();
+                    float dt = (float)fixedDeltaTime/100.f;
+                    p.updatePhysics(dt, 1);
                 });
 
                 return null;

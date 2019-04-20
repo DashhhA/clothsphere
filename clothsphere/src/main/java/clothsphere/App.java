@@ -1,8 +1,5 @@
+package clothsphere;
 
-package  clothsphere;
-
-import clothsphere.cloth.Cloth;
-import clothsphere.helpers.CameraTransform;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.scene.*;
@@ -14,7 +11,8 @@ import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Sphere;
 import javafx.stage.Stage;
-
+import clothsphere.cloth.Cloth;
+import clothsphere.helpers.CameraTransform;
 
 /**
  * Главный класс приложения.
@@ -41,10 +39,6 @@ public class App extends Application {
      */
     public Cloth cloth;
 
-    public int clothWidth;
-    public int clothHeight;
-    public int clothDivX;
-    public int clothDivY;
 
     /**
      * Радиус сферы
@@ -55,6 +49,26 @@ public class App extends Application {
      * Разделы сферы (детализация)
      */
     public int sphereDivisions;
+
+    /**
+     * Ширина ткани
+     */
+    public int clothWidth;
+
+    /**
+     * Высота ткани
+     */
+    public int clothHeight;
+
+    /**
+     * Деления ткани по X
+     */
+    public int clothDivX;
+
+    /**
+     * Деления ткани по Y
+     */
+    public int clothDivY;
 
     /**
      * Координаты мыши, для управления сценой
@@ -151,6 +165,9 @@ public class App extends Application {
      */
     public void setSceneControl(Scene scene) {
 
+        /**
+         * При нажатии мыши запоминаем позицию курсора на сцене
+         */
         scene.setOnMousePressed((MouseEvent me) -> {
             mousePosX = me.getSceneX();
             mousePosY = me.getSceneY();
@@ -158,6 +175,9 @@ public class App extends Application {
             mouseOldY = me.getSceneY();
         });
 
+        /**
+         * Меняем координату положения камеры по Z, для приближения или отдаления с помощью колеса мыши
+         */
         scene.setOnScroll(new EventHandler<ScrollEvent>() {
             @Override
             public void handle(ScrollEvent event) {
@@ -169,29 +189,45 @@ public class App extends Application {
             }
         });
 
+        /**
+         *  При перемещении курсора мыши с нажатой кнопкой
+         */
         scene.setOnMouseDragged((MouseEvent me) -> {
+
+            //Меняем старые и новые координаты
             mouseOldX = mousePosX;
             mouseOldY = mousePosY;
             mousePosX = me.getSceneX();
             mousePosY = me.getSceneY();
+
+            //Вычисляем разницу старых и новых координат
             mouseDeltaX = (mousePosX - mouseOldX);
             mouseDeltaY = (mousePosY - mouseOldY);
 
+            //Множетили перемещения, для определния скорости вращения
             double modifier = 10.0;
             double modifierFactor = 0.1;
 
+            //Если зажата клавиша CTRL уменьшаем множитель
             if (me.isControlDown()) {
                 modifier = 0.1;
             }
+            //Если зажата клавиша SHIFT увеличиваем множитель
             if (me.isShiftDown()) {
                 modifier = 50.0;
             }
+
+            //Нажата левая кнопка мыши
             if (me.isPrimaryButtonDown()) {
+                //Устанавливаем Z и X оси вращения камеры
                 cameraTransform.rz.setAngle(((cameraTransform.rz.getAngle() - mouseDeltaX * modifierFactor * modifier * 2.0) % 360 + 540) % 360 - 180); // +
                 cameraTransform.rx.setAngle(((cameraTransform.rx.getAngle() - mouseDeltaY * modifierFactor * modifier * 2.0) % 360 + 540) % 360 - 180); // -
-            } else if (me.isSecondaryButtonDown()) {
-                cameraTransform.ry.setAngle(((cameraTransform.ry.getAngle() - mouseDeltaX * modifierFactor * modifier * 2.0) % 360 + 540) % 360 - 180);
-            }
+            } else
+                //Нажата правая кнопка мыши
+                if (me.isSecondaryButtonDown()) {
+                    //Устанавливаем вращение вокруг Y оси камеры
+                    cameraTransform.ry.setAngle(((cameraTransform.ry.getAngle() - mouseDeltaX * modifierFactor * modifier * 2.0) % 360 + 540) % 360 - 180);
+                }
         });
 
     }
@@ -214,12 +250,13 @@ public class App extends Application {
         //Установим материал сферы, чтобы различать вращение
         setSphereMaterial();
 
+        //Создаем ткань
         cloth = new Cloth(clothDivX, clothDivY, clothWidth, clothHeight);
         cloth.setDrawMode(DrawMode.LINE);
         cloth.setCullFace(CullFace.NONE);
         cloth.material.setSpecularPower(2);
 
-        //Добавляем сферу в корневую группу
+        //Добавляем сферу и ткань в корневую группу
         Group root = new Group(cloth, sphere);
 
         //Добавляем сцену, и включем в нее пустой Group, устанавливаем ширину, высоту
@@ -245,5 +282,9 @@ public class App extends Application {
         //Показываем окно
         primaryStage.show();
 
+        //Заупскаем симуляцию при старте
+        cloth.timer.start();
+
     }
 }
+
