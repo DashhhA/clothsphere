@@ -167,6 +167,85 @@ public class ClothPoint {
             //Вычесляем следующую позицию используя алгоритм Verlet Integration
             Vector4 next = position.add(vel.multiply((float)dt)).add(acceleration.multiply((float) (dtSq)));
 
+            //Масштаб радиуса сферы
+            float scaleRatio = 1.06f;
+
+            //Делаем проверяемый радиус чуть больше чем реальный, чтобы ткань не просвечивала
+            float sphereRadius = (float) (parent.sphere.getRadius() * scaleRatio);
+
+            //Флаг дальнейшего движения точки
+            boolean movable = true;
+
+            //скольжение
+            boolean slide = false;
+
+            //Если позиция точки в сфере
+            if(position.squaredLength() < sphereRadius*sphereRadius) {
+
+
+                if(slide) {
+                    //нормализуем вектор позиции
+                    Vector4 normal = position.normalize();
+                    //инвертируем
+                    Vector4 neg = normal.multiply(-1);
+
+                    float vertical = Math.max(force.dotProduct(neg),  0 );
+
+                    //если он не вертиальный
+                    if (vertical != 0) {
+                        //добавляем небольшой случайный боковой коеффициент силы
+                        //случайность зададим у самой ткани а не для каждой точки
+                        force.y += 3-parent.ky;
+                        force.x += 3-parent.kx;
+
+                        if (force.length() > 0 || vertical == 0)
+                            movable = true;
+                        else
+                            movable = false;
+
+                    }
+                } else {
+                    //очищаем силы
+                    clearForces();
+                    //запрещаем передвижение
+                    movable = false;
+                }
+            }
+
+            if(movable) {
+
+                //Если сила гравитации слишком большая ограничиваем движение чтобы ткань не порвалась.
+                if(force.z < -350) {
+                    force.z = -350;
+
+                    //Если отключено скольжение фиксируем точки с большой силой чтобы ограничить тряску
+                    if(!slide) {
+                        setPosition(oldPosition);
+                        setOldPosition(oldPosition);
+                    }
+                }
+
+                next = position.add(vel.multiply((float) dt)).add(acceleration.multiply((float) (dtSq)));
+
+            }
+
+            //если скольжение то делаем имтацию трения
+            if(slide)
+                if(next.squaredLength() < sphereRadius*sphereRadius) {
+
+                    //смещаем позиции вдоль радиуса сферы
+                    next = next.normalize().multiply(sphereRadius);
+
+                    //увиличиваем массу чтобы имитировать трение
+                    mass *= 1 + dt/9.1;
+                } else {
+
+                    if(mass > 2) {
+                        // если точка освободилась а масса > 2, возвращаем в исходное состояние
+                        mass = initMass;
+                    }
+                }
+
             //Проверяем коснулась ли ткань пола
             if(next.z<-500.5f) {
                 //Если да фиксируем ось Z
@@ -177,11 +256,19 @@ public class ClothPoint {
             if(next.z < -450f) clearForces();
 
             //смещаем вектора позиции
-            setOldPosition(position);
-            setPosition(next);
+            if(movable) {
+                setOldPosition(position);
+                //if(movable)
+                setPosition(next);
+            }else {
+                setPosition(oldPosition);
+                setOldPosition(oldPosition);
+            }
+
         }
     }
 
 }
+
 
 

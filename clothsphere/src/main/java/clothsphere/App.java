@@ -251,7 +251,7 @@ public class App extends Application {
         setSphereMaterial();
 
         //Создаем ткань
-        cloth = new Cloth(clothDivX, clothDivY, clothWidth, clothHeight);
+        cloth = new Cloth(sphere, clothDivX, clothDivY, clothWidth, clothHeight);
         cloth.setDrawMode(DrawMode.LINE);
         cloth.setCullFace(CullFace.NONE);
         cloth.material.setSpecularPower(2);

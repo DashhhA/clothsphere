@@ -2,19 +2,24 @@ package clothsphere.cloth;
 
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.MeshView;
+import javafx.scene.shape.Sphere;
 import javafx.scene.shape.TriangleMesh;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static java.lang.Math.random;
-import static java.lang.Math.sqrt;
+import static java.lang.Math.*;
 
 /**
  * Ткань
  */
 public class Cloth extends MeshView {
+
+    /**
+     * Проверяемая на колизии сфера
+     */
+    public Sphere sphere;
 
     /**
      * Точки такни
@@ -62,6 +67,12 @@ public class Cloth extends MeshView {
     public  int constraitsAccuracy = 8;
 
     /**
+     * Случайный коефициент скольжения по осям X,Y
+     */
+    public float ky = (float) (Math.random() * 3);
+    public float kx = (float) (Math.random() * 3);
+
+    /**
      * Конструктор ткани с параметрами
      *
      * @param divsX делений по X оси
@@ -69,7 +80,10 @@ public class Cloth extends MeshView {
      * @param width ширина
      * @param height высота
      */
-    public Cloth(int divsX, int divsY, double width, double height) {
+    public Cloth(Sphere sphere, int divsX, int divsY, double width, double height) {
+
+        //Проверяемая сфера
+        this.sphere = sphere;
 
         //Создаем таймер
         this.timer = new ClothTimer(this);
