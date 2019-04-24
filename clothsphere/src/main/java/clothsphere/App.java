@@ -81,6 +81,11 @@ public class App extends Application {
     private double mouseDeltaY;
 
     /**
+     * Свет сцены
+     */
+    PointLight light, light2, light3;
+
+    /**
      * Конструктор
      * @param args параметры командной строки
      */
@@ -152,11 +157,17 @@ public class App extends Application {
      */
     public void setSceneLight() {
 
-        PointLight light = new PointLight(Color.LIGHTSKYBLUE);
+        light = new PointLight(Color.LIGHTSKYBLUE);
         //cameraTransform.getChildren().add(light);
         light.translateXProperty().bind(camera.translateXProperty());
         light.translateYProperty().bind(camera.translateYProperty());
         light.translateZProperty().bind(camera.translateZProperty());
+
+        light2 = new PointLight(Color.GAINSBORO);
+        light2.setTranslateZ(-1500);
+
+        light3 = new PointLight(Color.AZURE);
+        light3.setTranslateZ(2500);
     }
 
     /**
@@ -257,7 +268,7 @@ public class App extends Application {
         cloth.material.setSpecularPower(2);
 
         //Добавляем сферу и ткань в корневую группу
-        Group root = new Group(cloth, sphere);
+        Group root = new Group(cloth, sphere, light, light2, light3);
 
         //Добавляем сцену, и включем в нее пустой Group, устанавливаем ширину, высоту
         Scene scene = new Scene(root, 800, 600, true, SceneAntialiasing.BALANCED);
