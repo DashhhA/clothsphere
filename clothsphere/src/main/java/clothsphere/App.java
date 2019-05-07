@@ -1,11 +1,16 @@
 package clothsphere;
 
+import clothsphere.controllers.Controller;
 import javafx.application.Application;
 import javafx.event.EventHandler;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.*;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.*;
 import javafx.scene.shape.CullFace;
 import javafx.scene.shape.DrawMode;
@@ -13,6 +18,8 @@ import javafx.scene.shape.Sphere;
 import javafx.stage.Stage;
 import clothsphere.cloth.Cloth;
 import clothsphere.helpers.CameraTransform;
+
+import java.io.IOException;
 
 /**
  * Главный класс приложения.
@@ -247,13 +254,15 @@ public class App extends Application {
      * @param primaryStage главное окно
      */
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage) throws IOException {
 
         //Значения по умолчанию
         setSceneDefaults();
 
+        //Камера сцены
         createCamera();
 
+        //Свет сцены
         setSceneLight();
 
         //Создаем сферу
@@ -268,13 +277,41 @@ public class App extends Application {
         cloth.material.setSpecularPower(2);
 
         //Добавляем сферу и ткань в корневую группу
-        Group root = new Group(cloth, sphere, light, light2, light3);
+        Group root = new Group();
+        root.getChildren().addAll(cameraTransform,cloth, sphere, light, light2, light3);
 
-        //Добавляем сцену, и включем в нее пустой Group, устанавливаем ширину, высоту
-        Scene scene = new Scene(root, 800, 600, true, SceneAntialiasing.BALANCED);
+        //Создаем субсцену для 3D и убираем туда элементы, камеру и свет
+        SubScene subscene = new SubScene(root, 0, 0, true, SceneAntialiasing.BALANCED);
 
         //Назначаем камеру
-        scene.setCamera(camera);
+        subscene.setCamera(camera);
+
+        //Загружаем fxml - с интерфейсом окна
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/main.fxml"));
+        BorderPane fxml  = loader.load();
+        //Получам класс контроллера и передаем ему ссылку на приложение
+        Controller controller = loader.getController();
+        controller.app = this;
+
+        //Создаем слои
+        StackPane stackPane = new StackPane();
+        //Помещаем в BorderPane субсцену в центр
+        BorderPane pane = new BorderPane();
+        pane.setCenter(subscene);
+
+        //Стэк слоев делаем прозрачным, цвет фона будет задаваться в субсцене
+        stackPane.setBackground(Background.EMPTY);
+        //По очереди накладываем сцену, а потом интерфейс
+        stackPane.getChildren().add(pane);
+        stackPane.getChildren().add(fxml);
+
+        //Добавляем сцену, и включаем stackPane как корневой элемент, устанавливаем ширину, высоту
+        Scene scene = new Scene(stackPane, 800, 600);
+
+        //Привязываем ширину и высоту подсцены к изменению свойств основной сцены
+        subscene.heightProperty().bind(scene.heightProperty());
+        subscene.widthProperty().bind(scene.widthProperty());
+
 
         //Делаем фон линейным градиентом, от черного к небесно-голубому
         Stop[] stops = new Stop[]{new Stop(0, Color.BLACK), new Stop(1, Color.SKYBLUE)};
