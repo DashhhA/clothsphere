@@ -4,6 +4,9 @@
 <BorderPane fx:id="root"
             xmlns:fx="http://javafx.com/fxml">
     <top>
-        <Label>Информация о разработчике</Label>
+        <Label> Информация о разработчике:
+            ФИ: Склярова Дарья.
+            dyusklyarova@edu.hse.ru;
+            +7-977-993-55-09</Label>
     </top>
 </BorderPane>

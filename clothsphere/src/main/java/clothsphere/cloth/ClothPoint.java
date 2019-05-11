@@ -32,11 +32,12 @@ public class ClothPoint {
 
     /**
      * Конструктор точки
+     *
      * @param parent ткань
-     * @param mass масса точки
-     * @param x коодинаты x
-     * @param y коодинаты y
-     * @param z коодинаты z
+     * @param mass   масса точки
+     * @param x      коодинаты x
+     * @param y      коодинаты y
+     * @param z      коодинаты z
      */
     public ClothPoint(Cloth parent, double mass, double x, double y, double z) {
 
@@ -67,6 +68,7 @@ public class ClothPoint {
 
     /**
      * Установить текущую позицию
+     *
      * @param pos координаты точки
      */
     public void setPosition(Vector4 pos) {
@@ -77,6 +79,7 @@ public class ClothPoint {
 
     /**
      * Установить старую позицию
+     *
      * @param oldPosition координаты точки
      */
     public void setOldPosition(Vector4 oldPosition) {
@@ -87,6 +90,7 @@ public class ClothPoint {
 
     /**
      * Установить вектор силы
+     *
      * @param p
      */
     private void setForce(Vector4 p) {
@@ -102,9 +106,10 @@ public class ClothPoint {
 
     /**
      * Присоединить к
-     * @param other другая точка
+     *
+     * @param other        другая точка
      * @param linkDistance растояние
-     * @param stiffness жесткость
+     * @param stiffness    жесткость
      */
     public final void attatchTo(ClothPoint other, double linkDistance, double stiffness) {
         attatchTo(this, other, linkDistance, stiffness);
@@ -117,6 +122,7 @@ public class ClothPoint {
 
     /**
      * Применяем вектор силы
+     *
      * @param force
      */
 
@@ -125,6 +131,7 @@ public class ClothPoint {
         this.force.y += force.y;
         this.force.z += force.z;
     }
+
     /**
      * Решеаем связи в паралельной потоковой обработке
      */
@@ -154,18 +161,18 @@ public class ClothPoint {
             double GRAVITY = -0.98;
 
             //Направляем гравитацию по оси Z
-            applyForce(new Vector4(0,0, (float) GRAVITY));
+            applyForce(new Vector4(0, 0, (float) GRAVITY));
 
             //Вектор ускорения
-            Vector4 acceleration = new Vector4(0,0,0);
+            Vector4 acceleration = new Vector4(0, 0, 0);
 
             //Если масса точки больше 0, делим вектор силы на массу.
-            if(mass > 0) {
+            if (mass > 0) {
                 acceleration = force.divide((float) mass);
             }
 
             //Вычесляем следующую позицию используя алгоритм Verlet Integration
-            Vector4 next = position.add(vel.multiply((float)dt)).add(acceleration.multiply((float) (dtSq)));
+            Vector4 next = position.add(vel.multiply((float) dt)).add(acceleration.multiply((float) (dtSq)));
 
             //Масштаб радиуса сферы
             float scaleRatio = 1.06f;
@@ -180,28 +187,28 @@ public class ClothPoint {
             boolean slide = false;
 
             //Если позиция точки в сфере
-            if(position.squaredLength() < sphereRadius*sphereRadius) {
+            if (position.squaredLength() < sphereRadius * sphereRadius) {
 
 
-                if(slide) {
+                if (slide) {
                     //нормализуем вектор позиции
                     Vector4 normal = position.normalize();
                     //инвертируем
                     Vector4 neg = normal.multiply(-1);
 
-                    float vertical = Math.max(force.dotProduct(neg),  0 );
+                    float vertical = Math.max(force.dotProduct(neg), 0);
 
                     //если он не вертиальный
                     if (vertical != 0) {
                         //добавляем небольшой случайный боковой коеффициент силы
                         //случайность зададим у самой ткани а не для каждой точки
-                        force.y += 3-parent.ky;
-                        force.x += 3-parent.kx;
-
-                        if (force.length() > 0 || vertical == 0)
+                        force.y += 3 - parent.ky;
+                        force.x += 3 - parent.kx;
+                        next.z = oldPosition.z;
+                       /* if (force.length() > 0 || vertical == 0)
                             movable = true;
                         else
-                            movable = false;
+                            movable = false;*/
 
                     }
                 } else {
@@ -212,14 +219,14 @@ public class ClothPoint {
                 }
             }
 
-            if(movable) {
+            if (movable) {
 
                 //Если сила гравитации слишком большая ограничиваем движение чтобы ткань не порвалась.
-                if(force.z < -350) {
+                if (force.z < -350) {
                     force.z = -350;
 
                     //Если отключено скольжение фиксируем точки с большой силой чтобы ограничить тряску
-                    if(!slide) {
+                    if (!slide) {
                         setPosition(oldPosition);
                         setOldPosition(oldPosition);
                     }
@@ -230,45 +237,53 @@ public class ClothPoint {
             }
 
             //если скольжение то делаем имтацию трения
-            if(slide)
-                if(next.squaredLength() < sphereRadius*sphereRadius) {
+            if (next.squaredLength() < sphereRadius * sphereRadius) {
 
-                    //смещаем позиции вдоль радиуса сферы
+                //смещаем позиции вдоль радиуса сферы
+                if (slide)
                     next = next.normalize().multiply(sphereRadius);
 
-                    //увиличиваем массу чтобы имитировать трение
-                    mass *= 1 + dt/9.1;
-                } else {
+                //увиличиваем массу чтобы имитировать трение,  в зависимости от радиуса счиатем коеффициенты увеличения массы
+                double kmin = 0.1;
+                double kavg = 9.1;
+                double rmin = 30;
+                double ravg = 145;
 
-                    if(mass > 2) {
-                        // если точка освободилась а масса > 2, возвращаем в исходное состояние
-                        mass = initMass;
-                    }
+                double kr = ((ravg - rmin) / 100);
+                double kk = ((kavg - kmin) / 100);
+
+                double k = (parent.sphere.getRadius() - rmin) / kr * kk;
+
+                mass *= 1 + dt / k;
+
+                if (mass > 50) mass = 50; //ограничим рост массы в точках соприкосновения
+            } else {
+
+                if (mass > 2) {
+                    // если точка освободилась а масса > 2, возвращаем в исходное состояние
+                    mass = initMass;
                 }
+            }
 
             //Проверяем коснулась ли ткань пола
-            if(next.z<-500.5f) {
+            if (next.z < -500.5f) {
                 //Если да фиксируем ось Z
                 next.z = -500.5f;
             }
 
             //если почти уже пол, убираем силу с некотрых точек, чтобы оставить ткань лежать не идеально ровно
-            if(next.z < -450f) clearForces();
+            if (next.z < -450f) clearForces();
 
             //смещаем вектора позиции
-            if(movable) {
+            if (movable) {
                 setOldPosition(position);
                 //if(movable)
                 setPosition(next);
-            }else {
+            } else {
                 setPosition(oldPosition);
                 setOldPosition(oldPosition);
             }
 
         }
     }
-
 }
-
-
-

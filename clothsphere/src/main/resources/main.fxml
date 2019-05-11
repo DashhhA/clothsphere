@@ -7,16 +7,16 @@
             xmlns:fx="http://javafx.com/fxml">
     <top>
         <HBox style="-fx-padding: 10px; -fx-spacing: 10px">
-            <Button fx:id="btnInfo" >Information</Button>
-            <Button fx:id="btnSettings" >Settings</Button>
+            <Button fx:id="btnInfo" onAction="#btnInfoClick">Information</Button>
+            <Button fx:id="btnSettings" onAction="#btnSettingsClick">Settings</Button>
 
         </HBox>
     </top>
     <bottom>
         <VBox style="-fx-padding: 10px; -fx-spacing: 10px">
-            <Button fx:id="btnStart">Start</Button>
-            <Button fx:id="btnPause">Pause</Button>
-            <Button fx:id="btnRestart">Restart</Button>
+            <Button fx:id="btnStart" onAction="#btnStartClick">Start</Button>
+            <Button fx:id="btnPause" onAction="#btnPauseClick">Pause</Button>
+            <Button fx:id="btnRestart" onAction="#btnRestartClick">Restart</Button>
         </VBox>
     </bottom>
 </BorderPane>

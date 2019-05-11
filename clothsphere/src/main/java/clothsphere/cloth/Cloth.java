@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static java.lang.Math.*;
+import static java.lang.Math.random;
+import static java.lang.Math.sqrt;
 
 /**
  * Ткань
@@ -69,8 +70,8 @@ public class Cloth extends MeshView {
     /**
      * Случайный коефициент скольжения по осям X,Y
      */
-    public float ky = (float) (Math.random() * 3);
-    public float kx = (float) (Math.random() * 3);
+    public float ky = (float) (Math.random()*3);
+    public float kx = (float) (Math.random()*3);
 
     /**
      * Конструктор ткани с параметрами
@@ -224,6 +225,35 @@ public class Cloth extends MeshView {
     }
 
     /**
+     * Старт симуляции
+     */
+    public final void startSimulation() {
+        timer.dostart();
+    }
+
+    /**
+     * Пауза симуляции
+     */
+    public final void pauseSimulation() {
+        timer.pause();
+    }
+
+    /**
+     * Сброс симуляции
+     */
+    public final void resetSimulation() {
+
+        points.parallelStream().forEach(p -> {
+
+            p.reset();
+            p.oldPosition.z = (float)Math.random()*3+300;
+            p.position.z = (float)Math.random()*3+300;
+            p.clearForces();
+
+        });
+    }
+
+    /**
      * Обновляем точки сетки (обьекта Mesh)
      */
     public void updatePoints() {
@@ -252,23 +282,23 @@ public class Cloth extends MeshView {
             }
         }
         public void add(double d) {
-            if(curr.length == size){
-                curr = Arrays.copyOf(curr, size*2);
+            if(curr.length==size){
+                curr=Arrays.copyOf(curr, size*2);
             }
-            curr[size++] = (float)d;
+            curr[size++]=(float)d;
         }
 
         public void join(FloatCollector other) {
-            if(size + other.size > curr.length) {
-                curr = Arrays.copyOf(curr, size + other.size);
+            if(size+other.size > curr.length) {
+                curr=Arrays.copyOf(curr, size+other.size);
             }
             System.arraycopy(other.curr, 0, curr, size, other.size);
-            size += other.size;
+            size+=other.size;
         }
 
         public float[] toArray() {
-            if(size != curr.length){
-                curr = Arrays.copyOf(curr, size);
+            if(size!=curr.length){
+                curr=Arrays.copyOf(curr, size);
             }
             return curr;
         }

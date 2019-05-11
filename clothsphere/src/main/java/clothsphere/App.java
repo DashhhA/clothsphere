@@ -1,11 +1,11 @@
 package clothsphere;
 
-import clothsphere.controllers.Controller;
 import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.*;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Background;
@@ -17,6 +17,7 @@ import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Sphere;
 import javafx.stage.Stage;
 import clothsphere.cloth.Cloth;
+import clothsphere.controllers.Controller;
 import clothsphere.helpers.CameraTransform;
 
 import java.io.IOException;
@@ -87,6 +88,7 @@ public class App extends Application {
     private double mouseDeltaX;
     private double mouseDeltaY;
 
+
     /**
      * Свет сцены
      */
@@ -104,13 +106,13 @@ public class App extends Application {
      * Устанавливаем значения по умолчанию
      */
     public void setSceneDefaults() {
-        sphereRadius = 145;
+        sphereRadius = 175;
         sphereDivisions = 50;
 
-        clothWidth = 800;
-        clothHeight = 800;
-        clothDivX = 20;
-        clothDivY = 20;
+        clothWidth = 700;
+        clothHeight = 700;
+        clothDivX = 22;
+        clothDivY = 22;
     }
 
     /**
@@ -165,7 +167,7 @@ public class App extends Application {
     public void setSceneLight() {
 
         light = new PointLight(Color.LIGHTSKYBLUE);
-        //cameraTransform.getChildren().add(light);
+
         light.translateXProperty().bind(camera.translateXProperty());
         light.translateYProperty().bind(camera.translateYProperty());
         light.translateZProperty().bind(camera.translateZProperty());
@@ -182,6 +184,44 @@ public class App extends Application {
      * @param scene сцена
      */
     public void setSceneControl(Scene scene) {
+
+        //Управления кнопками
+        scene.setOnKeyPressed(event -> {
+
+            double change = 10.0;
+            //Быстрое перемещение по клавише shift
+            if (event.isShiftDown()) {
+                change = 50.0;
+            }
+
+            //код кнопки
+            KeyCode keycode = event.getCode();
+
+            //пробел
+            if (keycode == KeyCode.SPACE) {
+                if (cloth.timer.isRunning()) {
+                    cloth.pauseSimulation();
+                } else {
+                    cloth.startSimulation();
+                }
+
+            }
+
+            //управление WASD
+            if (keycode == KeyCode.W) {
+                camera.setTranslateZ(camera.getTranslateZ() + change);
+            }
+            if (keycode == KeyCode.S) {
+                camera.setTranslateZ(camera.getTranslateZ() - change);
+            }
+            if (keycode == KeyCode.A) {
+                camera.setTranslateX(camera.getTranslateX() - change);
+            }
+            if (keycode == KeyCode.D) {
+                camera.setTranslateX(camera.getTranslateX() + change);
+            }
+        });
+
 
         /**
          * При нажатии мыши запоминаем позицию курсора на сцене
@@ -272,13 +312,15 @@ public class App extends Application {
 
         //Создаем ткань
         cloth = new Cloth(sphere, clothDivX, clothDivY, clothWidth, clothHeight);
-        cloth.setDrawMode(DrawMode.LINE);
+        cloth.material.setDiffuseMap(new Image("https://www.sketchuptextureclub.com/public/texture_d/0046-blue-uni-wallpaper-texture-seamless-hr.jpg"));
+        cloth.setDrawMode(DrawMode.FILL);
+        //cloth.setDrawMode(DrawMode.LINE);
         cloth.setCullFace(CullFace.NONE);
         cloth.material.setSpecularPower(2);
 
         //Добавляем сферу и ткань в корневую группу
         Group root = new Group();
-        root.getChildren().addAll(cameraTransform,cloth, sphere, light, light2, light3);
+        root.getChildren().addAll(cameraTransform, cloth, sphere, light, light2, light3);
 
         //Создаем субсцену для 3D и убираем туда элементы, камеру и свет
         SubScene subscene = new SubScene(root, 0, 0, true, SceneAntialiasing.BALANCED);
@@ -287,6 +329,7 @@ public class App extends Application {
         subscene.setCamera(camera);
 
         //Загружаем fxml - с интерфейсом окна
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/main.fxml"));
         BorderPane fxml  = loader.load();
         //Получам класс контроллера и передаем ему ссылку на приложение
@@ -312,7 +355,6 @@ public class App extends Application {
         subscene.heightProperty().bind(scene.heightProperty());
         subscene.widthProperty().bind(scene.widthProperty());
 
-
         //Делаем фон линейным градиентом, от черного к небесно-голубому
         Stop[] stops = new Stop[]{new Stop(0, Color.BLACK), new Stop(1, Color.SKYBLUE)};
         LinearGradient lg = new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE, stops);
@@ -330,9 +372,15 @@ public class App extends Application {
         //Показываем окно
         primaryStage.show();
 
-        //Заупскаем симуляцию при старте
-        cloth.timer.start();
+    }
 
+    /**
+     * Обновляем настройки
+     */
+    public void changeSettings() {
+        sphere.setRadius(sphereRadius);
+        cloth.buildMesh(clothDivX, clothDivY, clothWidth, clothHeight,true,true);
     }
 }
+
 
